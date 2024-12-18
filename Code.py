@@ -48,4 +48,16 @@ while True:
         break
     msg = vec.transform([msg])
     pred = [model_MNB.predict(msg), model_LR.predict(msg), model_SVC.predict(msg), model_RF.predict(msg)]
+    pred_results = ""
+    if pred[0] == 1:
+        pred_results += "NB "
+    if pred[1] == 1:
+        pred_results += "LR "
+    if pred[2] == 1:
+        pred_results += "SVC "
+    if pred[3] == 1:
+        pred_results += "RF"
+    if not pred_results:
+        pred_results = "None"
     print(f"{sum(i[0] for i in pred)*100/len(pred)}% flagged as spam")
+    print(f"Flagged by: {pred_results}")
