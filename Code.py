@@ -12,6 +12,8 @@ from xgboost import XGBClassifier
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 
 data = pd.read_csv('Spam_SMS.csv')
 
@@ -20,12 +22,22 @@ data.drop_duplicates(inplace=True)
 data.dropna(inplace=True)
 data.describe()
 
-# Change ham to 0 and spam to 1, then change all messages to lowercase
-data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
+#stopwords.word刪除
+tokens = [word_tokenize(i) for i in data['Message']]
+tkn = Tokenizer()
+tkn.fit_on_texts(tokens)
+stopwords_list = stopwords.words('english')
+for i in range(len(tokens)):
+    tokens[i] = [word for word in tokens[i] if word not in stopwords_list]
+    tokens[i] = ' '.join(tokens[i])
+
+data['Message'] = tokens
 data['Message'] = data['Message'].str.lower()
+data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
+
 
 # Define all models and vectorizer
-tkn = Tokenizer()
+
 vec = CountVectorizer()
 
 model_DT = DecisionTreeClassifier()
