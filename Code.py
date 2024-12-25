@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.text import Tokenizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -14,7 +14,7 @@ from sklearn.metrics import confusion_matrix
 
 data = pd.read_csv('Spam_SMS.csv')
 
-#data.drop_duplicates(inplace=True)
+data.drop_duplicates(inplace=True)
 data.dropna(inplace=True)
 data.describe()
 
