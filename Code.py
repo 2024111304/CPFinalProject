@@ -13,7 +13,6 @@ from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
 data = pd.read_csv('Spam_SMS.csv')
 
 # Drop duplicates and missing values, then describe the data
