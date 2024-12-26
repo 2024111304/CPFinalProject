@@ -35,47 +35,43 @@ data['Message'] = tokens
 data['Message'] = data['Message'].str.lower()
 data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
 
-#########################畫出每個詞彙的TF-IDF值########################但我不知道為甚麼算出來的idf值長度是5159但是feature_name是9355,print(tfidf_matrix.shape)#output:(5159, 9355)
-def tokenizer(text):
-    return list(word_tokenize(text))
+#########################畫出每個詞彙的TF-IDF值########################
+documents = data['Message'].values
 
-tfidf_vectorizer = TfidfVectorizer(tokenizer=tokenizer,token_pattern=None, norm=None)
+# 初始化 TfidfVectorizer 並擬合數據
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(documents)
 
-tf_mattrix=tfidf_vectorizer.fit_transform(data['Message'])
-#print(tf_mattrix.shape[0])#output=5159
-#取得詞語列表
-feature_names = tfidf_vectorizer.get_feature_names_out()
-#print(feature_names[0:3])
-#print(feature_names.shape[0])#output=9355
-tf_mattrix=tf_mattrix.toarray()
-tf = pd.DataFrame(tf_mattrix, columns=feature_names)
+# 獲取 IDF 值
+idf_values = vectorizer.idf_
+feature_names = vectorizer.get_feature_names_out()
+# 將 IDF 值和詞彙名稱組合在一起
+idf_items = list(zip(feature_names, idf_values))
 
-tfidf_vectorizer.fit_transform(data['Message'])
+# 按照 IDF 值排序，取前 20 個最低的
+idf_items_sorted_lowest20 = sorted(idf_items, key=lambda x: x[1])[:20]
+idf_items_sorted_highest20 = sorted(idf_items, key=lambda x: x[1])[::-1][:20]
 
-idf_vector = tfidf_vectorizer.idf_
-# 獲取每個詞彙的IDF值
+# 分離詞彙名稱和 IDF 值
+sorted_feature_names_lowest20, sorted_idf_values_lowest20 = zip(*idf_items_sorted_lowest20)
+sorted_feature_names_higest20, sorted_idf_values_highest20 = zip(*idf_items_sorted_highest20)
+# 繪製 IDF 值最低的部分
+plt.figure(figsize=(10, 6))
+plt.bar(sorted_feature_names_lowest20, sorted_idf_values_lowest20, color='blue')
+plt.xlabel('Words')
+plt.ylabel('IDF Values')
+plt.title('Top 20 Words with Lowest IDF Values in Spam_SMS.csv')
+plt.xticks(rotation=90)
+plt.tight_layout()
 
-idf = pd.DataFrame(idf_vector, index=feature_names, columns=["IDF"])
-tfidf_matrix = tfidf_vectorizer.fit_transform(data['Message'])
-idf.to_csv('IDF.csv')
-idf1=pd.read_csv('IDF.csv')
-#print(tfidf_matrix.shape)#(5159, 9355)
-print(tfidf_matrix)
+plt.figure(figsize=(10, 6))
+plt.bar(sorted_feature_names_higest20, sorted_idf_values_highest20, color='blue')
+plt.xlabel('Words')
+plt.ylabel('IDF Values')
+plt.title('Top 20 Words with Lowest IDF Values in Spam_SMS.csv')
+plt.xticks(rotation=90)
+plt.tight_layout()
 
-tfidf = pd.DataFrame(tfidf_matrix.toarray(), columns=feature_names)
-# 獲取每個詞彙的TF-IDF值
-tfidf_scores = tfidf_matrix.toarray()
-
-# 繪製每個詞彙的TF-IDF值
-plt.figure(figsize=(8, 8))
-theta=np.linspace(0, 2 * np.pi, tfidf_scores.shape[0], endpoint=False)
-r= tfidf_scores.mean(axis=1)
-if len(theta) != len(r):
-    raise ValueError(f"Theta and r must have the same length, but have lengths {len(theta)} and {len(r)}")
-plt.polar(theta,tfidf_scores.mean(axis=1))
-#plt.fill(np.linspace(0, 2 * np.pi, tfidf_scores.shape[0], endpoint=False), tfidf_scores.mean(axis=1), alpha=0.25)
-#plt.xticks(np.linspace(0, 2 * np.pi, tfidf_scores.shape[0], endpoint=False), feature_names, rotation=90)
-plt.title('TF-IDF Scores for Words')
 plt.show()
 #########################畫出每個詞彙的TF-IDF值########################
 
