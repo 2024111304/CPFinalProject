@@ -35,6 +35,50 @@ data['Message'] = tokens
 data['Message'] = data['Message'].str.lower()
 data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
 
+#########################畫出每個詞彙的TF-IDF值########################但我不知道為甚麼算出來的idf值長度是5159但是feature_name是9355,print(tfidf_matrix.shape)#output:(5159, 9355)
+def tokenizer(text):
+    return list(word_tokenize(text))
+
+tfidf_vectorizer = TfidfVectorizer(tokenizer=tokenizer,token_pattern=None, norm=None)
+
+tf_mattrix=tfidf_vectorizer.fit_transform(data['Message'])
+#print(tf_mattrix.shape[0])#output=5159
+#取得詞語列表
+feature_names = tfidf_vectorizer.get_feature_names_out()
+#print(feature_names[0:3])
+#print(feature_names.shape[0])#output=9355
+tf_mattrix=tf_mattrix.toarray()
+tf = pd.DataFrame(tf_mattrix, columns=feature_names)
+
+tfidf_vectorizer.fit_transform(data['Message'])
+
+idf_vector = tfidf_vectorizer.idf_
+# 獲取每個詞彙的IDF值
+
+idf = pd.DataFrame(idf_vector, index=feature_names, columns=["IDF"])
+tfidf_matrix = tfidf_vectorizer.fit_transform(data['Message'])
+idf.to_csv('IDF.csv')
+idf1=pd.read_csv('IDF.csv')
+#print(tfidf_matrix.shape)#(5159, 9355)
+print(tfidf_matrix)
+
+tfidf = pd.DataFrame(tfidf_matrix.toarray(), columns=feature_names)
+# 獲取每個詞彙的TF-IDF值
+tfidf_scores = tfidf_matrix.toarray()
+
+# 繪製每個詞彙的TF-IDF值
+plt.figure(figsize=(8, 8))
+theta=np.linspace(0, 2 * np.pi, tfidf_scores.shape[0], endpoint=False)
+r= tfidf_scores.mean(axis=1)
+if len(theta) != len(r):
+    raise ValueError(f"Theta and r must have the same length, but have lengths {len(theta)} and {len(r)}")
+plt.polar(theta,tfidf_scores.mean(axis=1))
+#plt.fill(np.linspace(0, 2 * np.pi, tfidf_scores.shape[0], endpoint=False), tfidf_scores.mean(axis=1), alpha=0.25)
+#plt.xticks(np.linspace(0, 2 * np.pi, tfidf_scores.shape[0], endpoint=False), feature_names, rotation=90)
+plt.title('TF-IDF Scores for Words')
+plt.show()
+#########################畫出每個詞彙的TF-IDF值########################
+
 
 # Define all models and vectorizer
 
