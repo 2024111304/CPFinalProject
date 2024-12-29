@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from tensorflow.keras.preprocessing.text import Tokenizer
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
@@ -14,13 +14,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
 
 data = pd.read_csv('Spam_SMS.csv')
 
 # Drop duplicates and missing values, then describe the data
 data.drop_duplicates(inplace=True)
 data.dropna(inplace=True)
-data.describe()
 
 #stopwords.word刪除
 tokens = [word_tokenize(i) for i in data['Message']]
@@ -31,10 +32,12 @@ for i in range(len(tokens)):
     tokens[i] = [word for word in tokens[i] if word not in stopwords_list]
     tokens[i] = ' '.join(tokens[i])
 
+
+
 data['Message'] = tokens
 data['Message'] = data['Message'].str.lower()
 data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
-
+'''
 #########################畫出每個詞彙的TF-IDF值########################
 documents = data['Message'].values
 
@@ -54,7 +57,7 @@ idf_items_sorted_highest20 = sorted(idf_items, key=lambda x: x[1])[::-1][:20]
 
 # 分離詞彙名稱和 IDF 值
 sorted_feature_names_lowest20, sorted_idf_values_lowest20 = zip(*idf_items_sorted_lowest20)
-sorted_feature_names_higest20, sorted_idf_values_highest20 = zip(*idf_items_sorted_highest20)
+sorted_feature_names_highest20, sorted_idf_values_highest20 = zip(*idf_items_sorted_highest20)
 # 繪製 IDF 值最低的部分
 plt.figure(figsize=(10, 6))
 plt.bar(sorted_feature_names_lowest20, sorted_idf_values_lowest20, color='blue')
@@ -64,17 +67,19 @@ plt.title('Top 20 Words with Lowest IDF Values in Spam_SMS.csv')
 plt.xticks(rotation=90)
 plt.tight_layout()
 
+plt.show()
+
 plt.figure(figsize=(10, 6))
-plt.bar(sorted_feature_names_higest20, sorted_idf_values_highest20, color='blue')
+plt.bar(sorted_feature_names_highest20, sorted_idf_values_highest20, color='blue')
 plt.xlabel('Words')
 plt.ylabel('IDF Values')
-plt.title('Top 20 Words with Lowest IDF Values in Spam_SMS.csv')
+plt.title('Top 20 Words with Highest IDF Values in Spam_SMS.csv')
 plt.xticks(rotation=90)
 plt.tight_layout()
 
 plt.show()
 #########################畫出每個詞彙的TF-IDF值########################
-
+'''
 
 # Define all models and vectorizer
 
@@ -92,6 +97,16 @@ X = vec.fit_transform(data['Message'])
 y = data['Class']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+'''smote = SMOTE()
+
+X_train, y_train = smote.fit_resample(X_train, y_train)'''
+
+rus = RandomUnderSampler()
+
+X_train, y_train = rus.fit_resample(X_train, y_train)
+
+#print(X_train_resampled.shape, y_train_resampled.shape)
 
 model_MNB.fit(X_train, y_train)
 model_LR.fit(X_train, y_train)
@@ -116,13 +131,13 @@ cm_RF = confusion_matrix(y_test, y_pred_RF)
 cm_DT = confusion_matrix(y_test, y_pred_DT)
 cm_XGB = confusion_matrix(y_test, y_pred_XGB)
 
-print("--- Confusion Matrices ---")
+'''print("--- Confusion Matrices ---")
 print(f"Multinomial Naive Bayes: \n{cm_MNB}")
 print(f"Logistic Regression: \n{cm_LR}")
 print(f"Support Vector Machine Classification: \n{cm_SVC}")
 print(f"Random Forest Classification: \n{cm_RF}")
 print(f"Decision Tree Classification: \n{cm_DT}")
-print(f"XGBoost Classification: \n{cm_XGB}")
+print(f"XGBoost Classification: \n{cm_XGB}")'''
 
 print(f"Accuracy: \n\
     Multinomial Naive Bayes: {model_MNB.score(X_test, y_test)*100:.2f}%, \n\
@@ -139,7 +154,7 @@ def extract_spam_keywords(msg_vector, vectorizer, model):
                      if value > 0 and model.feature_log_prob_[1][i] > model.feature_log_prob_[0][i]]
     return spam_keywords
 
-fig, axes = plt.subplots(3, 2, figsize=(15, 15))
+fig, axes = plt.subplots(2, 3, figsize=(15, 15))
 axes = axes.flatten()
 
 confusion_matrices = [cm_MNB, cm_LR, cm_SVC, cm_RF, cm_DT, cm_XGB]
@@ -150,7 +165,7 @@ for ax, cm, title in zip(axes, confusion_matrices, titles):
     ax.set_title(title)
     ax.set_xlabel('Predicted')
     ax.set_ylabel('Actual')
-plt.tight_layout()
+plt.subplots_adjust(wspace=0.5, hspace=0.5)
 plt.show()
 
 while True:
