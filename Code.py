@@ -85,12 +85,12 @@ plt.show()
 
 vec = CountVectorizer()
 
-model_DT = DecisionTreeClassifier()
-model_XGB = XGBClassifier()
+model_DT = DecisionTreeClassifier(class_weight='balanced')
+model_XGB = XGBClassifier(class_weight='balanced')
 model_MNB = MultinomialNB()
-model_LR = LogisticRegression()
-model_SVC = SVC()
-model_RF = RandomForestClassifier()
+model_LR = LogisticRegression(class_weight='balanced')
+model_SVC = SVC(class_weight='balanced')
+model_RF = RandomForestClassifier(class_weight='balanced')
 
 # Fit the vectorizer and transform the data
 X = vec.fit_transform(data['Message'])
@@ -100,11 +100,11 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 '''smote = SMOTE()
 
-X_train, y_train = smote.fit_resample(X_train, y_train)'''
+X_train, y_train = smote.fit_resample(X_train, y_train)
 
 rus = RandomUnderSampler()
 
-X_train, y_train = rus.fit_resample(X_train, y_train)
+X_train, y_train = rus.fit_resample(X_train, y_train)'''
 
 #print(X_train_resampled.shape, y_train_resampled.shape)
 
