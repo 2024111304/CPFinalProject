@@ -16,6 +16,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
+from textblob import TextBlob
 
 data = pd.read_csv('Spam_SMS.csv')
 
@@ -31,6 +32,10 @@ stopwords_list = stopwords.words('english')
 for i in range(len(tokens)):
     tokens[i] = [word for word in tokens[i] if word not in stopwords_list]
     tokens[i] = ' '.join(tokens[i])
+    for j in range(len(tokens[i])):
+        if tokens[i][j] != TextBlob(tokens[i][j]).correct():
+            tokens[i][j] = TextBlob(tokens[i][j]).correct()
+
 
 
 
