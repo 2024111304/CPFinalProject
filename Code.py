@@ -10,18 +10,21 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import confusion_matrix
-import seaborn as sns
 import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
+from textblob import TextBlob
+from progress.bar import Bar
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 data = pd.read_csv('Spam_SMS.csv')
 
 # Drop duplicates and missing values, then describe the data
 data.drop_duplicates(inplace=True)
 data.dropna(inplace=True)
+data.reset_index(drop=True, inplace=True)
 
 #stopwords.word刪除
 tokens = [word_tokenize(i) for i in data['Message']]
@@ -31,10 +34,11 @@ stopwords_list = stopwords.words('english')
 for i in range(len(tokens)):
     tokens[i] = [word for word in tokens[i] if word not in stopwords_list]
     tokens[i] = ' '.join(tokens[i])
+    for j in range(len(tokens[i])):
+        if tokens[i][j] != TextBlob(tokens[i][j]).correct():
+            tokens[i][j] = TextBlob(tokens[i][j]).correct()
 
-
-
-data['Message'] = tokens
+'''data['Message'] = tokens'''
 data['Message'] = data['Message'].str.lower()
 data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
 '''
@@ -86,7 +90,7 @@ plt.show()
 vec = CountVectorizer()
 
 model_DT = DecisionTreeClassifier(class_weight='balanced')
-model_XGB = XGBClassifier(class_weight='balanced')
+model_XGB = XGBClassifier()
 model_MNB = MultinomialNB()
 model_LR = LogisticRegression(class_weight='balanced')
 model_SVC = SVC(class_weight='balanced')
@@ -94,21 +98,135 @@ model_RF = RandomForestClassifier(class_weight='balanced')
 
 # Fit the vectorizer and transform the data
 X = vec.fit_transform(data['Message'])
-y = data['Class']
+y = data['Class'].values
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+from sklearn.model_selection import StratifiedKFold
 
-'''smote = SMOTE()
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-X_train, y_train = smote.fit_resample(X_train, y_train)
+skf_results_normal = []
+with Bar('Processing [None]...', max = 5) as bar:
+    for train_index, test_index in skf.split(X, y):
+        
+        accuracy = [0,0,0,0,0,0]
+        
+        X_train_fold, X_test_fold = X[train_index], X[test_index]
+        y_train_fold, y_test_fold = y[train_index], y[test_index]
 
-rus = RandomUnderSampler()
+        # Train each model on this fold
+        model_MNB.fit(X_train_fold, y_train_fold)
+        model_LR.fit(X_train_fold, y_train_fold)
+        model_SVC.fit(X_train_fold, y_train_fold)
+        model_RF.fit(X_train_fold, y_train_fold)
+        model_DT.fit(X_train_fold, y_train_fold)
+        model_XGB.fit(X_train_fold, y_train_fold)
+        
+        pred_MNB = model_MNB.predict(X_test_fold)
+        pred_LR = model_LR.predict(X_test_fold)
+        pred_SVC = model_SVC.predict(X_test_fold)
+        pred_RF = model_RF.predict(X_test_fold)
+        pred_DT = model_DT.predict(X_test_fold)
+        pred_XGB = model_XGB.predict(X_test_fold)
+        
+        # Evaluate each model on the test fold
+        accuracy[0] = [round(accuracy_score(y_test_fold, pred_MNB)*100, 2), round(precision_score(y_test_fold, pred_MNB)*100, 2), round(recall_score(y_test_fold, pred_MNB)*100, 2), round(f1_score(y_test_fold, pred_MNB)*100, 2)]
+        accuracy[1] = [round(accuracy_score(y_test_fold, pred_LR)*100, 2), round(precision_score(y_test_fold, pred_LR)*100, 2), round(recall_score(y_test_fold, pred_LR)*100, 2), round(f1_score(y_test_fold, pred_LR)*100, 2)]
+        accuracy[2] = [round(accuracy_score(y_test_fold, pred_SVC)*100, 2), round(precision_score(y_test_fold, pred_SVC)*100, 2), round(recall_score(y_test_fold, pred_SVC)*100, 2), round(f1_score(y_test_fold, pred_SVC)*100, 2)]
+        accuracy[3] = [round(accuracy_score(y_test_fold, pred_RF)*100, 2), round(precision_score(y_test_fold, pred_RF)*100, 2), round(recall_score(y_test_fold, pred_RF)*100, 2), round(f1_score(y_test_fold, pred_RF)*100, 2)]
+        accuracy[4] = [round(accuracy_score(y_test_fold, pred_DT)*100, 2), round(precision_score(y_test_fold, pred_DT)*100, 2), round(recall_score(y_test_fold, pred_DT)*100, 2), round(f1_score(y_test_fold, pred_DT)*100, 2)]
+        accuracy[5] = [round(accuracy_score(y_test_fold, pred_XGB)*100, 2), round(precision_score(y_test_fold, pred_XGB)*100, 2), round(recall_score(y_test_fold, pred_XGB)*100, 2), round(f1_score(y_test_fold, pred_XGB)*100, 2)]
+        skf_results_normal.append(accuracy)
+        bar.next()
+    
+print("Fold accuracy [No other preprocessing]:\n", pd.DataFrame(skf_results_normal, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
+best_results_df = pd.DataFrame(np.max(np.array(skf_results_normal), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
+print("Best accuracy, precision, recall, and F1-score for each model [No other preprocessing]:\n", best_results_df)
 
-X_train, y_train = rus.fit_resample(X_train, y_train)'''
+skf_results_smote = []
+with Bar('Processing [with SMOTE]...', max = 5) as bar:
+    for train_index, test_index in skf.split(X, y):
+        
+        smote = SMOTE()
+        accuracy = [0,0,0,0,0,0]
+        
+        X_train_fold, X_test_fold = X[train_index], X[test_index]
+        y_train_fold, y_test_fold = y[train_index], y[test_index]
+        
+        X_train_fold, y_train_fold = smote.fit_resample(X_train_fold, y_train_fold)
 
-#print(X_train_resampled.shape, y_train_resampled.shape)
+        # Train each model on this fold
+        model_MNB.fit(X_train_fold, y_train_fold)
+        model_LR.fit(X_train_fold, y_train_fold)
+        model_SVC.fit(X_train_fold, y_train_fold)
+        model_RF.fit(X_train_fold, y_train_fold)
+        model_DT.fit(X_train_fold, y_train_fold)
+        model_XGB.fit(X_train_fold, y_train_fold)
 
-model_MNB.fit(X_train, y_train)
+        pred_MNB = model_MNB.predict(X_test_fold)
+        pred_LR = model_LR.predict(X_test_fold)
+        pred_SVC = model_SVC.predict(X_test_fold)
+        pred_RF = model_RF.predict(X_test_fold)
+        pred_DT = model_DT.predict(X_test_fold)
+        pred_XGB = model_XGB.predict(X_test_fold)
+        
+        # Evaluate each model on the test fold
+        accuracy[0] = [round(accuracy_score(y_test_fold, pred_MNB)*100, 2), round(precision_score(y_test_fold, pred_MNB)*100, 2), round(recall_score(y_test_fold, pred_MNB)*100, 2), round(f1_score(y_test_fold, pred_MNB)*100, 2)]
+        accuracy[1] = [round(accuracy_score(y_test_fold, pred_LR)*100, 2), round(precision_score(y_test_fold, pred_LR)*100, 2), round(recall_score(y_test_fold, pred_LR)*100, 2), round(f1_score(y_test_fold, pred_LR)*100, 2)]
+        accuracy[2] = [round(accuracy_score(y_test_fold, pred_SVC)*100, 2), round(precision_score(y_test_fold, pred_SVC)*100, 2), round(recall_score(y_test_fold, pred_SVC)*100, 2), round(f1_score(y_test_fold, pred_SVC)*100, 2)]
+        accuracy[3] = [round(accuracy_score(y_test_fold, pred_RF)*100, 2), round(precision_score(y_test_fold, pred_RF)*100, 2), round(recall_score(y_test_fold, pred_RF)*100, 2), round(f1_score(y_test_fold, pred_RF)*100, 2)]
+        accuracy[4] = [round(accuracy_score(y_test_fold, pred_DT)*100, 2), round(precision_score(y_test_fold, pred_DT)*100, 2), round(recall_score(y_test_fold, pred_DT)*100, 2), round(f1_score(y_test_fold, pred_DT)*100, 2)]
+        accuracy[5] = [round(accuracy_score(y_test_fold, pred_XGB)*100, 2), round(precision_score(y_test_fold, pred_XGB)*100, 2), round(recall_score(y_test_fold, pred_XGB)*100, 2), round(f1_score(y_test_fold, pred_XGB)*100, 2)]
+        
+        skf_results_smote.append(accuracy)
+        bar.next()
+    
+print("Fold accuracy [SMOTE]:\n", pd.DataFrame(skf_results_smote, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
+best_results_df_smote = pd.DataFrame(np.max(np.array(skf_results_smote), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
+print("Best accuracy, precision, recall, and F1-score for each model [SMOTE]:\n", best_results_df_smote)
+
+skf_results_rus = []
+with Bar('Processing [with RandomUnderSampler]...', max = 5) as bar:
+    for train_index, test_index in skf.split(X, y):
+        
+        rus = RandomUnderSampler()
+        accuracy = [0,0,0,0,0,0]
+        
+        X_train_fold, X_test_fold = X[train_index], X[test_index]
+        y_train_fold, y_test_fold = y[train_index], y[test_index]
+        
+        X_train_fold, y_train_fold = rus.fit_resample(X_train_fold, y_train_fold)
+
+        # Train each model on this fold
+        model_MNB.fit(X_train_fold, y_train_fold)
+        model_LR.fit(X_train_fold, y_train_fold)
+        model_SVC.fit(X_train_fold, y_train_fold)
+        model_RF.fit(X_train_fold, y_train_fold)
+        model_DT.fit(X_train_fold, y_train_fold)
+        model_XGB.fit(X_train_fold, y_train_fold)
+
+        pred_MNB = model_MNB.predict(X_test_fold)
+        pred_LR = model_LR.predict(X_test_fold)
+        pred_SVC = model_SVC.predict(X_test_fold)
+        pred_RF = model_RF.predict(X_test_fold)
+        pred_DT = model_DT.predict(X_test_fold)
+        pred_XGB = model_XGB.predict(X_test_fold)
+        
+        # Evaluate each model on the test fold
+        accuracy[0] = [round(accuracy_score(y_test_fold, pred_MNB)*100, 2), round(precision_score(y_test_fold, pred_MNB)*100, 2), round(recall_score(y_test_fold, pred_MNB)*100, 2), round(f1_score(y_test_fold, pred_MNB)*100, 2)]
+        accuracy[1] = [round(accuracy_score(y_test_fold, pred_LR)*100, 2), round(precision_score(y_test_fold, pred_LR)*100, 2), round(recall_score(y_test_fold, pred_LR)*100, 2), round(f1_score(y_test_fold, pred_LR)*100, 2)]
+        accuracy[2] = [round(accuracy_score(y_test_fold, pred_SVC)*100, 2), round(precision_score(y_test_fold, pred_SVC)*100, 2), round(recall_score(y_test_fold, pred_SVC)*100, 2), round(f1_score(y_test_fold, pred_SVC)*100, 2)]
+        accuracy[3] = [round(accuracy_score(y_test_fold, pred_RF)*100, 2), round(precision_score(y_test_fold, pred_RF)*100, 2), round(recall_score(y_test_fold, pred_RF)*100, 2), round(f1_score(y_test_fold, pred_RF)*100, 2)]
+        accuracy[4] = [round(accuracy_score(y_test_fold, pred_DT)*100, 2), round(precision_score(y_test_fold, pred_DT)*100, 2), round(recall_score(y_test_fold, pred_DT)*100, 2), round(f1_score(y_test_fold, pred_DT)*100, 2)]
+        accuracy[5] = [round(accuracy_score(y_test_fold, pred_XGB)*100, 2), round(precision_score(y_test_fold, pred_XGB)*100, 2), round(recall_score(y_test_fold, pred_XGB)*100, 2), round(f1_score(y_test_fold, pred_XGB)*100, 2)]
+        
+        skf_results_rus.append(accuracy)
+        bar.next()
+    
+print("Fold accuracy [RUS]:\n", pd.DataFrame(skf_results_rus, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
+best_results_df_rus = pd.DataFrame(np.max(np.array(skf_results_rus), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
+print("Best accuracy, precision, recall, and F1-score for each model [RUS]:\n", best_results_df_rus)
+
+'''model_MNB.fit(X_train, y_train)
 model_LR.fit(X_train, y_train)
 model_SVC.fit(X_train, y_train)
 model_RF.fit(X_train, y_train)
@@ -129,7 +247,7 @@ cm_LR = confusion_matrix(y_test, y_pred_LR)
 cm_SVC = confusion_matrix(y_test, y_pred_SVC)
 cm_RF = confusion_matrix(y_test, y_pred_RF)
 cm_DT = confusion_matrix(y_test, y_pred_DT)
-cm_XGB = confusion_matrix(y_test, y_pred_XGB)
+cm_XGB = confusion_matrix(y_test, y_pred_XGB)'''
 
 '''print("--- Confusion Matrices ---")
 print(f"Multinomial Naive Bayes: \n{cm_MNB}")
@@ -138,14 +256,6 @@ print(f"Support Vector Machine Classification: \n{cm_SVC}")
 print(f"Random Forest Classification: \n{cm_RF}")
 print(f"Decision Tree Classification: \n{cm_DT}")
 print(f"XGBoost Classification: \n{cm_XGB}")'''
-
-print(f"Accuracy: \n\
-    Multinomial Naive Bayes: {model_MNB.score(X_test, y_test)*100:.2f}%, \n\
-    Logistic Regression: {model_LR.score(X_test, y_test)*100:.2f}%, \n\
-    Support Vector Machine Classification: {model_SVC.score(X_test, y_test)*100:.2f}%, \n\
-    Random Forest Classification: {model_RF.score(X_test, y_test)*100:.2f}%, \n\
-    Decision Tree Classification: {model_DT.score(X_test, y_test)*100:.2f}%, \n\
-    XGBoost Classification: {model_XGB.score(X_test, y_test)*100:.2f}%")
 
 def extract_spam_keywords(msg_vector, vectorizer, model):
     feature_names = vectorizer.get_feature_names_out()
@@ -157,16 +267,16 @@ def extract_spam_keywords(msg_vector, vectorizer, model):
 fig, axes = plt.subplots(2, 3, figsize=(15, 15))
 axes = axes.flatten()
 
-confusion_matrices = [cm_MNB, cm_LR, cm_SVC, cm_RF, cm_DT, cm_XGB]
+#confusion_matrices = [cm_MNB, cm_LR, cm_SVC, cm_RF, cm_DT, cm_XGB]
 titles = ["Multinomial Naive Bayes", "Logistic Regression", "Support Vector Machine", "Random Forest", "Decision Tree", "XGBoost"]
 
-for ax, cm, title in zip(axes, confusion_matrices, titles):
+'''for ax, cm, title in zip(axes, confusion_matrices, titles):
     sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Blues', cbar=False)
     ax.set_title(title)
     ax.set_xlabel('Predicted')
     ax.set_ylabel('Actual')
 plt.subplots_adjust(wspace=0.5, hspace=0.5)
-plt.show()
+plt.show()'''
 
 while True:
     msg = input("Enter testing message (enter nothing to quit): ")
