@@ -226,6 +226,15 @@ print("Fold accuracy [RUS]:\n", pd.DataFrame(skf_results_rus, columns = ["MNB", 
 best_results_df_rus = pd.DataFrame(np.max(np.array(skf_results_rus), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [RUS]:\n", best_results_df_rus)
 
+for i in range(len(y_test)):
+    if y_test.iloc[i] == y_pred_MNB[i]:
+        continue
+    else:
+        if y_test.iloc[i] == 0 and y_pred_MNB[i] == 1:
+            print(f'False Negative: {data.iloc[i]["Message"]}')
+        else:
+            print(f'False Positive: {data.iloc[i]["Message"]}')
+
 '''model_MNB.fit(X_train, y_train)
 model_LR.fit(X_train, y_train)
 model_SVC.fit(X_train, y_train)
