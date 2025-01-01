@@ -226,11 +226,11 @@ print("Fold accuracy [RUS]:\n", pd.DataFrame(skf_results_rus, columns = ["MNB", 
 best_results_df_rus = pd.DataFrame(np.max(np.array(skf_results_rus), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [RUS]:\n", best_results_df_rus)
 
-for i in range(len(y_test)):
-    if y_test.iloc[i] == y_pred_MNB[i]:
+for i in range(len(y_test_fold)):
+    if y_test_fold[i] == pred_MNB[i]:
         continue
     else:
-        if y_test.iloc[i] == 0 and y_pred_MNB[i] == 1:
+        if y_test_fold.iloc[i] == 0 and pred_MNB[i] == 1:
             print(f'False Negative: {data.iloc[i]["Message"]}')
         else:
             print(f'False Positive: {data.iloc[i]["Message"]}')
@@ -251,12 +251,12 @@ y_pred_DT = model_DT.predict(X_test)
 y_pred_XGB = model_XGB.predict(X_test)
 
 # Calculate confusion matrices
-cm_MNB = confusion_matrix(y_test, y_pred_MNB)
-cm_LR = confusion_matrix(y_test, y_pred_LR)
-cm_SVC = confusion_matrix(y_test, y_pred_SVC)
-cm_RF = confusion_matrix(y_test, y_pred_RF)
-cm_DT = confusion_matrix(y_test, y_pred_DT)
-cm_XGB = confusion_matrix(y_test, y_pred_XGB)'''
+cm_MNB = confusion_matrix(y_test_fold, y_pred_MNB)
+cm_LR = confusion_matrix(y_test_fold, y_pred_LR)
+cm_SVC = confusion_matrix(y_test_fold, y_pred_SVC)
+cm_RF = confusion_matrix(y_test_fold, y_pred_RF)
+cm_DT = confusion_matrix(y_test_fold, y_pred_DT)
+cm_XGB = confusion_matrix(y_test_fold, y_pred_XGB)'''
 
 '''print("--- Confusion Matrices ---")
 print(f"Multinomial Naive Bayes: \n{cm_MNB}")
