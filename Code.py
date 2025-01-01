@@ -1,3 +1,7 @@
+import nltk
+nltk.download('punkt')
+nltk.download('punkt_tab')
+nltk.download('stopwords')
 import pandas as pd
 import numpy as np
 from tensorflow.keras.preprocessing.text import Tokenizer
