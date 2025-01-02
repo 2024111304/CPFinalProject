@@ -18,6 +18,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from textblob import TextBlob
 from progress.bar import Bar
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import seaborn as sns
 
 data = pd.read_csv('Spam_SMS.csv')
 
@@ -105,10 +106,12 @@ from sklearn.model_selection import StratifiedKFold
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 skf_results_normal = []
+conf_matrix_normal = []
 with Bar('Processing [None]...', max = 5) as bar:
     for train_index, test_index in skf.split(X, y):
         
         accuracy = [0,0,0,0,0,0]
+        conf_matrix = []
         
         X_train_fold, X_test_fold = X[train_index], X[test_index]
         y_train_fold, y_test_fold = y[train_index], y[test_index]
@@ -136,18 +139,53 @@ with Bar('Processing [None]...', max = 5) as bar:
         accuracy[4] = [round(accuracy_score(y_test_fold, pred_DT)*100, 2), round(precision_score(y_test_fold, pred_DT)*100, 2), round(recall_score(y_test_fold, pred_DT)*100, 2), round(f1_score(y_test_fold, pred_DT)*100, 2)]
         accuracy[5] = [round(accuracy_score(y_test_fold, pred_XGB)*100, 2), round(precision_score(y_test_fold, pred_XGB)*100, 2), round(recall_score(y_test_fold, pred_XGB)*100, 2), round(f1_score(y_test_fold, pred_XGB)*100, 2)]
         skf_results_normal.append(accuracy)
+        
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_MNB))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_LR))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_SVC))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_RF))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_DT))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_XGB))
+        conf_matrix_normal.append(conf_matrix)
+        
         bar.next()
-    
+conf_matrix_normal = np.array(conf_matrix_normal)
 print("Fold accuracy [No other preprocessing]:\n", pd.DataFrame(skf_results_normal, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df = pd.DataFrame(np.max(np.array(skf_results_normal), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [No other preprocessing]:\n", best_results_df)
 
+best_acc_instance = [np.argmax(np.array(skf_results_normal)[:,0,0]), np.argmax(np.array(skf_results_normal)[:,1,0]), \
+                    np.argmax(np.array(skf_results_normal)[:,2,0]), np.argmax(np.array(skf_results_normal)[:,3,0]), \
+                    np.argmax(np.array(skf_results_normal)[:,4,0]), np.argmax(np.array(skf_results_normal)[:,5,0])] # Index of instance with best accuracy for each model
+
+print("Conf. Matrix of instance with best accuracy [No other preprocessing]:\nMNB:\n", conf_matrix_normal[best_acc_instance[0], 0], "\nLR:\n", conf_matrix_normal[best_acc_instance[1], 1], \
+        "\nSVC:\n", conf_matrix_normal[best_acc_instance[2], 2], "\nRF:\n", conf_matrix_normal[best_acc_instance[3], 3], "\nDT:\n", conf_matrix_normal[best_acc_instance[4], 4], \
+        "\nXGB:\n", conf_matrix_normal[best_acc_instance[5], 5])
+
+fig, axes = plt.subplots(2, 3, figsize=(15, 15))
+axes = axes.flatten()
+
+titles = ["Multinomial Naive Bayes", "Logistic Regression", "Support Vector Machine", "Random Forest", "Decision Tree", "XGBoost"]
+
+confusion_matrices = [conf_matrix_normal[best_acc_instance[0], 0], conf_matrix_normal[best_acc_instance[1], 1], conf_matrix_normal[best_acc_instance[2], 2], conf_matrix_normal[best_acc_instance[3], 3], conf_matrix_normal[best_acc_instance[4], 4], conf_matrix_normal[best_acc_instance[5], 5]]
+
+for ax, cm, title in zip(axes, confusion_matrices, titles):
+    sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Blues', cbar=False)
+    ax.set_title(title)
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('Actual')
+plt.subplots_adjust(wspace=0.5, hspace=0.5)
+plt.show()
+
+
 skf_results_smote = []
+conf_matrix_smote = []
 with Bar('Processing [with SMOTE]...', max = 5) as bar:
     for train_index, test_index in skf.split(X, y):
         
         smote = SMOTE()
         accuracy = [0,0,0,0,0,0]
+        conf_matrix = []
         
         X_train_fold, X_test_fold = X[train_index], X[test_index]
         y_train_fold, y_test_fold = y[train_index], y[test_index]
@@ -176,20 +214,51 @@ with Bar('Processing [with SMOTE]...', max = 5) as bar:
         accuracy[3] = [round(accuracy_score(y_test_fold, pred_RF)*100, 2), round(precision_score(y_test_fold, pred_RF)*100, 2), round(recall_score(y_test_fold, pred_RF)*100, 2), round(f1_score(y_test_fold, pred_RF)*100, 2)]
         accuracy[4] = [round(accuracy_score(y_test_fold, pred_DT)*100, 2), round(precision_score(y_test_fold, pred_DT)*100, 2), round(recall_score(y_test_fold, pred_DT)*100, 2), round(f1_score(y_test_fold, pred_DT)*100, 2)]
         accuracy[5] = [round(accuracy_score(y_test_fold, pred_XGB)*100, 2), round(precision_score(y_test_fold, pred_XGB)*100, 2), round(recall_score(y_test_fold, pred_XGB)*100, 2), round(f1_score(y_test_fold, pred_XGB)*100, 2)]
-        
         skf_results_smote.append(accuracy)
+        
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_MNB))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_LR))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_SVC))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_RF))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_DT))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_XGB))
+        conf_matrix_smote.append(conf_matrix)
+        
         bar.next()
-    
+conf_matrix_smote = np.array(conf_matrix_smote)
 print("Fold accuracy [SMOTE]:\n", pd.DataFrame(skf_results_smote, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df_smote = pd.DataFrame(np.max(np.array(skf_results_smote), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [SMOTE]:\n", best_results_df_smote)
+best_acc_instance = [np.argmax(np.array(skf_results_smote)[:,0,0]), np.argmax(np.array(skf_results_smote)[:,1,0]), \
+                    np.argmax(np.array(skf_results_smote)[:,2,0]), np.argmax(np.array(skf_results_smote)[:,3,0]), \
+                    np.argmax(np.array(skf_results_smote)[:,4,0]), np.argmax(np.array(skf_results_smote)[:,5,0])] # Index of instance with best accuracy for each model 
+print("Conf. Matrix of instance with best accuracy [SMOTE]:\nMNB:\n", conf_matrix_smote[best_acc_instance[0], 0], "\nLR:\n", conf_matrix_smote[best_acc_instance[1], 1], \
+        "\nSVC:\n", conf_matrix_smote[best_acc_instance[2], 2], "\nRF:\n", conf_matrix_smote[best_acc_instance[3], 3], "\nDT:\n", conf_matrix_smote[best_acc_instance[4], 4], \
+        "\nXGB:\n", conf_matrix_smote[best_acc_instance[5], 5])
+
+fig, axes = plt.subplots(2, 3, figsize=(15, 15))
+axes = axes.flatten()
+
+titles = ["Multinomial Naive Bayes", "Logistic Regression", "Support Vector Machine", "Random Forest", "Decision Tree", "XGBoost"]
+
+confusion_matrices = [conf_matrix_smote[best_acc_instance[0], 0], conf_matrix_smote[best_acc_instance[1], 1], conf_matrix_smote[best_acc_instance[2], 2], conf_matrix_smote[best_acc_instance[3], 3], conf_matrix_smote[best_acc_instance[4], 4], conf_matrix_smote[best_acc_instance[5], 5]]
+
+for ax, cm, title in zip(axes, confusion_matrices, titles):
+    sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Blues', cbar=False)
+    ax.set_title(title)
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('Actual')
+plt.subplots_adjust(wspace=0.5, hspace=0.5)
+plt.show()
 
 skf_results_rus = []
+conf_matrix_rus = []
 with Bar('Processing [with RandomUnderSampler]...', max = 5) as bar:
     for train_index, test_index in skf.split(X, y):
         
         rus = RandomUnderSampler()
         accuracy = [0,0,0,0,0,0]
+        conf_matrix = []
         
         X_train_fold, X_test_fold = X[train_index], X[test_index]
         y_train_fold, y_test_fold = y[train_index], y[test_index]
@@ -220,51 +289,50 @@ with Bar('Processing [with RandomUnderSampler]...', max = 5) as bar:
         accuracy[5] = [round(accuracy_score(y_test_fold, pred_XGB)*100, 2), round(precision_score(y_test_fold, pred_XGB)*100, 2), round(recall_score(y_test_fold, pred_XGB)*100, 2), round(f1_score(y_test_fold, pred_XGB)*100, 2)]
         
         skf_results_rus.append(accuracy)
+        
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_MNB))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_LR))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_SVC))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_RF))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_DT))
+        conf_matrix.append(confusion_matrix(y_test_fold, pred_XGB))
+        conf_matrix_rus.append(conf_matrix)
+        
         bar.next()
-    
+conf_matrix_rus = np.array(conf_matrix_rus)
 print("Fold accuracy [RUS]:\n", pd.DataFrame(skf_results_rus, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df_rus = pd.DataFrame(np.max(np.array(skf_results_rus), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [RUS]:\n", best_results_df_rus)
+best_acc_instance = [np.argmax(np.array(skf_results_rus)[:,0,0]), np.argmax(np.array(skf_results_rus)[:,1,0]), \
+                    np.argmax(np.array(skf_results_rus)[:,2,0]), np.argmax(np.array(skf_results_rus)[:,3,0]), \
+                    np.argmax(np.array(skf_results_rus)[:,4,0]), np.argmax(np.array(skf_results_rus)[:,5,0])] # Index of instance with best accuracy for each model
+print("Conf. Matrix of instance with best accuracy [RUS]:\nMNB:\n", conf_matrix_rus[best_acc_instance[0], 0], "\nLR:\n", conf_matrix_rus[best_acc_instance[1], 1], \
+        "\nSVC:\n", conf_matrix_rus[best_acc_instance[2], 2], "\nRF:\n", conf_matrix_rus[best_acc_instance[3], 3], "\nDT:\n", conf_matrix_rus[best_acc_instance[4], 4], \
+        "\nXGB:\n", conf_matrix_rus[best_acc_instance[5], 5])
+
+fig, axes = plt.subplots(2, 3, figsize=(15, 15))
+axes = axes.flatten()
+
+titles = ["Multinomial Naive Bayes", "Logistic Regression", "Support Vector Machine", "Random Forest", "Decision Tree", "XGBoost"]
+
+confusion_matrices = [conf_matrix_rus[best_acc_instance[0], 0], conf_matrix_rus[best_acc_instance[1], 1], conf_matrix_rus[best_acc_instance[2], 2], conf_matrix_rus[best_acc_instance[3], 3], conf_matrix_rus[best_acc_instance[4], 4], conf_matrix_rus[best_acc_instance[5], 5]]
+
+for ax, cm, title in zip(axes, confusion_matrices, titles):
+    sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Blues', cbar=False)
+    ax.set_title(title)
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('Actual')
+plt.subplots_adjust(wspace=0.5, hspace=0.5)
+plt.show()
 
 for i in range(len(y_test_fold)):
     if y_test_fold[i] == pred_MNB[i]:
         continue
     else:
-        if y_test_fold.iloc[i] == 0 and pred_MNB[i] == 1:
-            print(f'False Negative: {data.iloc[i]["Message"]}')
+        if y_test_fold[i] == 0 and pred_MNB[i] == 1:
+            print(f'FN (Undetected spam): {data.iloc[i]["Message"]}')
         else:
-            print(f'False Positive: {data.iloc[i]["Message"]}')
-
-'''model_MNB.fit(X_train, y_train)
-model_LR.fit(X_train, y_train)
-model_SVC.fit(X_train, y_train)
-model_RF.fit(X_train, y_train)
-model_DT.fit(X_train, y_train)
-model_XGB.fit(X_train, y_train)
-
-# Get predictions
-y_pred_MNB = model_MNB.predict(X_test)
-y_pred_LR = model_LR.predict(X_test)
-y_pred_SVC = model_SVC.predict(X_test)
-y_pred_RF = model_RF.predict(X_test)
-y_pred_DT = model_DT.predict(X_test)
-y_pred_XGB = model_XGB.predict(X_test)
-
-# Calculate confusion matrices
-cm_MNB = confusion_matrix(y_test_fold, y_pred_MNB)
-cm_LR = confusion_matrix(y_test_fold, y_pred_LR)
-cm_SVC = confusion_matrix(y_test_fold, y_pred_SVC)
-cm_RF = confusion_matrix(y_test_fold, y_pred_RF)
-cm_DT = confusion_matrix(y_test_fold, y_pred_DT)
-cm_XGB = confusion_matrix(y_test_fold, y_pred_XGB)'''
-
-'''print("--- Confusion Matrices ---")
-print(f"Multinomial Naive Bayes: \n{cm_MNB}")
-print(f"Logistic Regression: \n{cm_LR}")
-print(f"Support Vector Machine Classification: \n{cm_SVC}")
-print(f"Random Forest Classification: \n{cm_RF}")
-print(f"Decision Tree Classification: \n{cm_DT}")
-print(f"XGBoost Classification: \n{cm_XGB}")'''
+            print(f'FP (Wrongly-flagged ham): {data.iloc[i]["Message"]}')
 
 def extract_spam_keywords(msg_vector, vectorizer, model):
     feature_names = vectorizer.get_feature_names_out()
@@ -273,22 +341,8 @@ def extract_spam_keywords(msg_vector, vectorizer, model):
                      if value > 0 and model.feature_log_prob_[1][i] > model.feature_log_prob_[0][i]]
     return spam_keywords
 
-fig, axes = plt.subplots(2, 3, figsize=(15, 15))
-axes = axes.flatten()
-
-#confusion_matrices = [cm_MNB, cm_LR, cm_SVC, cm_RF, cm_DT, cm_XGB]
-titles = ["Multinomial Naive Bayes", "Logistic Regression", "Support Vector Machine", "Random Forest", "Decision Tree", "XGBoost"]
-
-'''for ax, cm, title in zip(axes, confusion_matrices, titles):
-    sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Blues', cbar=False)
-    ax.set_title(title)
-    ax.set_xlabel('Predicted')
-    ax.set_ylabel('Actual')
-plt.subplots_adjust(wspace=0.5, hspace=0.5)
-plt.show()'''
-
 while True:
-    msg = input("Enter testing message (enter nothing to quit): ")
+    msg = input("Enter testing message (enter nothing to quit): ").lower()
     if not msg:
         break
     msg = vec.transform([msg])
