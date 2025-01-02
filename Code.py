@@ -23,28 +23,43 @@ from textblob import TextBlob
 from progress.bar import Bar
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-data = pd.read_csv('Spam_SMS.csv')
+# 讀取兩個檔案，指定編碼為 'ISO-8859-1'
+data1 = pd.read_csv('Spam_SMS.csv', encoding='ISO-8859-1')
+data2 = pd.read_csv('Spam_SMS_ChatGPT.csv', encoding='ISO-8859-1')
+
+# 合併兩個資料集
+data = pd.concat([data1, data2], ignore_index=True)
 
 # Drop duplicates and missing values, then describe the data
 data.drop_duplicates(inplace=True)
 data.dropna(inplace=True)
 data.reset_index(drop=True, inplace=True)
 
+# 確保所有值都是字串
+data['Message'] = data['Message'].astype(str)
+
 #stopwords.word刪除
 tokens = [word_tokenize(i) for i in data['Message']]
-tkn = Tokenizer()
-tkn.fit_on_texts(tokens)
 stopwords_list = stopwords.words('english')
-for i in range(len(tokens)):
-    tokens[i] = [word for word in tokens[i] if word not in stopwords_list]
-    tokens[i] = ' '.join(tokens[i])
-    for j in range(len(tokens[i])):
-        if tokens[i][j] != TextBlob(tokens[i][j]).correct():
-            tokens[i][j] = TextBlob(tokens[i][j]).correct()
+processed_tokens = []
+for  token_list in tokens:
+    filtered_tokens = [word for word in token_list if word.lower() not in stopwords_list]
+    if filtered_tokens:  # 確保不會移除所有的詞彙
+        processed_tokens.append(' '.join(filtered_tokens))
+    else:
+        processed_tokens.append('dummy')  # 如果全是停用詞，保留一個佔位符詞彙
+
+data['Message'] = processed_tokens
 
 '''data['Message'] = tokens'''
 data['Message'] = data['Message'].str.lower()
 data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
+
+# 初始化 CountVectorizer 並擬合數據
+vec = CountVectorizer()
+X = vec.fit_transform(data['Message'])
+y = data['Class'].values
+
 '''
 #########################畫出每個詞彙的TF-IDF值########################
 documents = data['Message'].values
