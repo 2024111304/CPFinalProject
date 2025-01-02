@@ -23,43 +23,58 @@ from textblob import TextBlob
 from progress.bar import Bar
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-# 讀取兩個檔案，指定編碼為 'ISO-8859-1'
-data1 = pd.read_csv('Spam_SMS.csv', encoding='ISO-8859-1')
-data2 = pd.read_csv('Spam_SMS_ChatGPT.csv', encoding='ISO-8859-1')
+# 讀取訓練資料集
+data_train = pd.read_csv('Spam_SMS.csv')
 
-# 合併兩個資料集
-data = pd.concat([data1, data2], ignore_index=True)
+# 讀取測試資料集
+data_test = pd.read_csv('Spam_SMS_ChatGPT.csv')
 
 # Drop duplicates and missing values, then describe the data
-data.drop_duplicates(inplace=True)
-data.dropna(inplace=True)
-data.reset_index(drop=True, inplace=True)
+data_train.drop_duplicates(inplace=True)
+data_train.dropna(inplace=True)
+data_train.reset_index(drop=True, inplace=True)
 
-# 確保所有值都是字串
-data['Message'] = data['Message'].astype(str)
+data_test.drop_duplicates(inplace=True)
+data_test.dropna(inplace=True)
+data_test.reset_index(drop=True, inplace=True)
 
 #stopwords.word刪除
-tokens = [word_tokenize(i) for i in data['Message']]
+tokens_train = [word_tokenize(i) for i in data_train['Message']]
+tokens_test = [word_tokenize(i) for i in data_test['Message']]
 stopwords_list = stopwords.words('english')
-processed_tokens = []
-for  token_list in tokens:
+
+processed_tokens_train = []
+for token_list in tokens_train:
     filtered_tokens = [word for word in token_list if word.lower() not in stopwords_list]
     if filtered_tokens:  # 確保不會移除所有的詞彙
-        processed_tokens.append(' '.join(filtered_tokens))
+        processed_tokens_train.append(' '.join(filtered_tokens))
     else:
-        processed_tokens.append('dummy')  # 如果全是停用詞，保留一個佔位符詞彙
+        processed_tokens_train.append('dummy')  # 如果全是停用詞，保留一個佔位符詞彙
 
-data['Message'] = processed_tokens
+processed_tokens_test = []
+for token_list in tokens_test:
+    filtered_tokens = [word for word in token_list if word.lower() not in stopwords_list]
+    if filtered_tokens:  # 確保不會移除所有的詞彙
+        processed_tokens_test.append(' '.join(filtered_tokens))
+    else:
+        processed_tokens_test.append('dummy')  # 如果全是停用詞，保留一個佔位符詞彙
 
-'''data['Message'] = tokens'''
-data['Message'] = data['Message'].str.lower()
-data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
+data_train['Message'] = processed_tokens_train
+data_test['Message'] = processed_tokens_test
+
+# 確保所有值都是字串
+data_train['Message'] = data_train['Message'].astype(str).str.lower()
+data_test['Message'] = data_test['Message'].astype(str).str.lower()
+data_train['Class'] = data_train['Class'].map({'ham': 0, 'spam': 1})
+data_test['Class'] = data_test['Class'].map({'ham': 0, 'spam': 1})
 
 # 初始化 CountVectorizer 並擬合數據
 vec = CountVectorizer()
-X = vec.fit_transform(data['Message'])
-y = data['Class'].values
+X_train = vec.fit_transform(data_train['Message'])
+y_train = data_train['Class'].values
 
+X_test = vec.transform(data_test['Message'])
+y_test = data_test['Class'].values
 '''
 #########################畫出每個詞彙的TF-IDF值########################
 documents = data['Message'].values
