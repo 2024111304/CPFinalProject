@@ -1,42 +1,42 @@
-Class,Message,,
-spam, Congratulations! You've won a $500 gift card! Claim now: https://ithelp.ithome.com.tw/articles/10331920,,
-ham, Let me know if you're coming to the party.,,
-spam, Free vacation package awaits you. Call 123-456-7890.,,
-ham, I?™ll be late  stuck in traffic. Sorry!,,
-ham, Please review the attached document for our meeting.,,
-spam, Limited time! Buy 1  Get 1 Free! https://ithelp.ithome.com.tw/articles/10202725,,
-ham, Hey  are we still meeting at 6 PM tonight?,,
-spam, Get a personal loan with zero interest. Apply today!,,
-ham, Don't forget to send the report by tomorrow morning.,,
-spam, Important! Update your payment details to avoid service interruption.,,
-ham, See you at the coffee shop later!,,
-spam, Urgent! Your account has been compromised. Verify here: [link],,
-ham, Your package has been delivered. Check your doorstep.,,
-spam, Claim your free gift card. Visit https://ithelp.ithome.com.tw/articles/10278851.,,
-ham, Can you pick up some milk on your way home?,,
-ham, Just landed I'll call you soon.,,
-spam, Act now to claim your cash prize! Call 987-654-3210.,,
-spam, Exclusive deal just for you. Click here: https://blog.csdn.net/Crystal_remember/article/details/116938863,,
-ham, Are we still good for the trip this weekend?,,
-ham, Happy Birthday! Hope you have a great day.,,
-spam, New job opportunity waiting for you! Apply at https://chih-sheng-huang821.medium.com/%E6%A9%9F%E5%99%A8%E5%AD%B8%E7%BF%92%E6%87%89%E7%94%A8-%E5%9E%83%E5%9C%BE%E8%A8%8A%E6%81%AF%E5%81%B5%E6%B8%AC-%E8%88%87-tf-idf%E4%BB%8B%E7%B4%B9-%E5%90%AB%E7%AF%84%E4%BE%8B%E7%A8%8B%E5%BC%8F-2cddc7f7b2c5.,,
-ham, Great job on the presentation today!,,
-spam, Win a free iPhone! Click to enter: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/claim,,
-ham, Can you please share the notes from today's class?,,
-ham, Are you free for lunch tomorrow?,,
-spam, This is your last chance to grab this deal! https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/claggy,,
-spam, Get 50% off on all items! Limited time offer: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94-%E8%8B%B1%E8%AA%9E/,,
-ham, I got the tickets for the concert can't wait!,,
-ham, Let?™s catch up soon. It?™s been too long!,,
-spam, Your account has been flagged. Verify immediately: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94-%E8%8B%B1%E8%AA%9E/%E6%B5%B7%E8%A7%92,,
-ham, Reminder: Your dentist appointment is at 10 AM.,,
-spam, Earn $500 daily from home! Learn more: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94-%E8%8B%B1%E8%AA%9E/%E6%B5%B7%E8%BB%8D,,
-spam, Your free trial is ending soon. Upgrade now: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94-%E8%8B%B1%E8%AA%9E/%E6%B5%B7%E9%BE%9C,,
-ham, Thanks for your help with the project.,,
-spam, Urgent! Your warranty is about to expire. Renew now.,,
-ham, Let's catch up soon. It's been too long!,,
-spam, Your loan approval is ready. Apply now: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/turtle-island,,
-ham, I'll text you when I?™m on my way.,,
-spam, Don't miss out on this exclusive offer. Sign up now!,,
-spam, You have been selected for a $1000 cashback. Act now!,,
-ham, Can we reschedule our meeting to 3 PM?,,
+Class,Message
+spam, Congratulations! You've won a $500 gift card! Claim now: https://ithelp.ithome.com.tw/articles/10331920
+ham, Let me know if you're coming to the party.
+spam, Free vacation package awaits you. Call 123-456-7890.
+ham, I'll be late  stuck in traffic. Sorry!
+ham, Please review the attached document for our meeting.
+spam, Limited time! Buy 1  Get 1 Free! https://ithelp.ithome.com.tw/articles/10202725
+ham, Hey  are we still meeting at 6 PM tonight?
+spam, Get a personal loan with zero interest. Apply today!
+ham, Don't forget to send the report by tomorrow morning.
+spam, Important! Update your payment details to avoid service interruption.
+ham, See you at the coffee shop later!
+spam, Urgent! Your account has been compromised. Verify here: [link]
+ham, Your package has been delivered. Check your doorstep.
+spam, Claim your free gift card. Visit https://ithelp.ithome.com.tw/articles/10278851.
+ham, Can you pick up some milk on your way home?
+ham, Just landed I'll call you soon.
+spam, Act now to claim your cash prize! Call 987-654-3210.
+spam, Exclusive deal just for you. Click here: https://blog.csdn.net/Crystal_remember/article/details/116938863
+ham, Are we still good for the trip this weekend?
+ham, Happy Birthday! Hope you have a great day.
+spam, New job opportunity waiting for you! Apply at https://chih-sheng-huang821.medium.com/%E6%A9%9F%E5%99%A8%E5%AD%B8%E7%BF%92%E6%87%89%E7%94%A8-%E5%9E%83%E5%9C%BE%E8%A8%8A%E6%81%AF%E5%81%B5%E6%B8%AC-%E8%88%87-tf-idf%E4%BB%8B%E7%B4%B9-%E5%90%AB%E7%AF%84%E4%BE%8B%E7%A8%8B%E5%BC%8F-2cddc7f7b2c5.
+ham, Great job on the presentation today!
+spam, Win a free iPhone! Click to enter: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/claim
+ham, Can you please share the notes from today's class?
+ham, Are you free for lunch tomorrow?
+spam, This is your last chance to grab this deal! https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/claggy
+spam, Get 50% off on all items! Limited time offer: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94-%E8%8B%B1%E8%AA%9E/
+ham, I got the tickets for the concert can't wait!
+ham, Let?ï¿½s catch up soon. It?ï¿½s been too long!
+spam, Your account has been flagged. Verify immediately: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94-%E8%8B%B1%E8%AA%9E/%E6%B5%B7%E8%A7%92
+ham, Reminder: Your dentist appointment is at 10 AM.
+spam, Earn $500 daily from home! Learn more: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94-%E8%8B%B1%E8%AA%9E/%E6%B5%B7%E8%BB%8D
+spam, Your free trial is ending soon. Upgrade now: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94-%E8%8B%B1%E8%AA%9E/%E6%B5%B7%E9%BE%9C
+ham, Thanks for your help with the project.
+spam, Urgent! Your warranty is about to expire. Renew now.
+ham, Let's catch up soon. It's been too long!
+spam, Your loan approval is ready. Apply now: https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/turtle-island
+ham, I'll text you when I?ï¿½m on my way.
+spam, Don't miss out on this exclusive offer. Sign up now!
+spam, You have been selected for a $1000 cashback. Act now!
+ham, Can we reschedule our meeting to 3 PM?
