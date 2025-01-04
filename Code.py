@@ -76,8 +76,6 @@ y = data['Class'].values
 X_gpt = vec.transform(data_gpt['Message'])
 y_gpt = data_gpt['Class'].values
 
-
-'''
 #########################畫出每個詞彙的TF-IDF值########################
 documents = data['Message'].values
 
@@ -119,7 +117,7 @@ plt.tight_layout()
 
 plt.show()
 #########################畫出每個詞彙的TF-IDF值########################
-'''
+
 
 # Define all models and vectorizer
 
@@ -174,7 +172,7 @@ with Bar('Processing [None]...', max = 5) as bar:
         skf_results_normal.append(accuracy)
         bar.next()
     
-print("Fold accuracy [No other preprocessing]:\n", pd.DataFrame(skf_results_normal, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
+#print("Fold accuracy [No other preprocessing]:\n", pd.DataFrame(skf_results_normal, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df = pd.DataFrame(np.max(np.array(skf_results_normal), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [No other preprocessing]:\n", best_results_df)
 
@@ -216,7 +214,7 @@ with Bar('Processing [with SMOTE]...', max = 5) as bar:
         skf_results_smote.append(accuracy)
         bar.next()
     
-print("Fold accuracy [SMOTE]:\n", pd.DataFrame(skf_results_smote, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
+#print("Fold accuracy [SMOTE]:\n", pd.DataFrame(skf_results_smote, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df_smote = pd.DataFrame(np.max(np.array(skf_results_smote), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [SMOTE]:\n", best_results_df_smote)
 
@@ -258,49 +256,18 @@ with Bar('Processing [with RandomUnderSampler]...', max = 5) as bar:
         skf_results_rus.append(accuracy)
         bar.next()
     
-print("Fold accuracy [RUS]:\n", pd.DataFrame(skf_results_rus, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
+#print("Fold accuracy [RUS]:\n", pd.DataFrame(skf_results_rus, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df_rus = pd.DataFrame(np.max(np.array(skf_results_rus), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [RUS]:\n", best_results_df_rus)
 
-for i in range(len(y_test_fold)):
+'''for i in range(len(y_test_fold)):
     if y_test_fold[i] == pred_MNB[i]:
         continue
     else:
         if y_test_fold[i] == 0 and pred_MNB[i] == 1:
             print(f'False Negative: {data.iloc[i]["Message"]}')
         else:
-            print(f'False Positive: {data.iloc[i]["Message"]}')
-
-'''model_MNB.fit(X_train, y_train)
-model_LR.fit(X_train, y_train)
-model_SVC.fit(X_train, y_train)
-model_RF.fit(X_train, y_train)
-model_DT.fit(X_train, y_train)
-model_XGB.fit(X_train, y_train)
-
-# Get predictions
-y_pred_MNB = model_MNB.predict(X_test)
-y_pred_LR = model_LR.predict(X_test)
-y_pred_SVC = model_SVC.predict(X_test)
-y_pred_RF = model_RF.predict(X_test)
-y_pred_DT = model_DT.predict(X_test)
-y_pred_XGB = model_XGB.predict(X_test)
-
-# Calculate confusion matrices
-cm_MNB = confusion_matrix(y_test_fold, y_pred_MNB)
-cm_LR = confusion_matrix(y_test_fold, y_pred_LR)
-cm_SVC = confusion_matrix(y_test_fold, y_pred_SVC)
-cm_RF = confusion_matrix(y_test_fold, y_pred_RF)
-cm_DT = confusion_matrix(y_test_fold, y_pred_DT)
-cm_XGB = confusion_matrix(y_test_fold, y_pred_XGB)'''
-
-'''print("--- Confusion Matrices ---")
-print(f"Multinomial Naive Bayes: \n{cm_MNB}")
-print(f"Logistic Regression: \n{cm_LR}")
-print(f"Support Vector Machine Classification: \n{cm_SVC}")
-print(f"Random Forest Classification: \n{cm_RF}")
-print(f"Decision Tree Classification: \n{cm_DT}")
-print(f"XGBoost Classification: \n{cm_XGB}")'''
+            print(f'False Positive: {data.iloc[i]["Message"]}')'''
 
 def extract_spam_keywords(msg_vector, vectorizer, model):
     feature_names = vectorizer.get_feature_names_out()
@@ -312,16 +279,19 @@ def extract_spam_keywords(msg_vector, vectorizer, model):
 fig, axes = plt.subplots(2, 3, figsize=(15, 15))
 axes = axes.flatten()
 
-#confusion_matrices = [cm_MNB, cm_LR, cm_SVC, cm_RF, cm_DT, cm_XGB]
-titles = ["Multinomial Naive Bayes", "Logistic Regression", "Support Vector Machine", "Random Forest", "Decision Tree", "XGBoost"]
+y_pred_gpt_MNB = model_MNB.predict(X_gpt)
+y_pred_gpt_LR = model_LR.predict(X_gpt)
+y_pred_gpt_SVC = model_SVC.predict(X_gpt)
+y_pred_gpt_RF = model_RF.predict(X_gpt)
+y_pred_gpt_DT = model_DT.predict(X_gpt)
+y_pred_gpt_XGB = model_XGB.predict(X_gpt)
 
-'''for ax, cm, title in zip(axes, confusion_matrices, titles):
-    sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Blues', cbar=False)
-    ax.set_title(title)
-    ax.set_xlabel('Predicted')
-    ax.set_ylabel('Actual')
-plt.subplots_adjust(wspace=0.5, hspace=0.5)
-plt.show()'''
+print("Acc. MNB (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_MNB))
+print("Acc. LR (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_LR))
+print("Acc. SVC (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_SVC))
+print("Acc. RF (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_RF))
+print("Acc. DT (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_DT))
+print("Acc. XGB (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_XGB))
 
 while True:
     msg = input("Enter testing message (enter nothing to quit): ")
@@ -341,10 +311,26 @@ while True:
     print(f"Flagged by: {pred_str}")
 
     if spam_probability > 50:
-        keywords = extract_spam_keywords(msg, vec, model_MNB)
-        print("This message is flagged as SPAM.")
+        keywords_list = []
+        for model in [model_MNB, model_LR, model_SVC, model_RF, model_DT, model_XGB]:
+            keywords_list.extend(extract_spam_keywords(msg, vec, model))
+        
+        # Tally the percentages
+        keyword_dict = {}
+        for keyword, prob in keywords_list:
+            if keyword in keyword_dict:
+                keyword_dict[keyword].append(prob)
+            else:
+                keyword_dict[keyword] = [prob]
+        
+        # Calculate the average percentage
+        averaged_keywords = [(keyword, np.mean(probs)) for keyword, probs in keyword_dict.items()]
+        
+        # Sort by the average percentage in descending order
+        averaged_keywords_sorted = sorted(averaged_keywords, key=lambda x: x[1], reverse=True)
+        
         print(f"Keywords indicating spam: ")
-        for keyword in keywords:
-            print(f"{keyword[0]} (Prob.: {keyword[1]:.3f}%)")
+        for keyword, avg_prob in averaged_keywords_sorted:
+            print(f"{keyword} (Avg. Prob.: {avg_prob:.3f}%)")
     else:
         print("This message is NOT flagged as spam.")
