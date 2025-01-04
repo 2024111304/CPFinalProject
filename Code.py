@@ -4,8 +4,7 @@ nltk.download('punkt_tab')
 nltk.download('stopwords')
 import pandas as pd
 import numpy as np
-from keras.preprocessing.text import Tokenizer
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
@@ -15,7 +14,7 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
@@ -23,6 +22,8 @@ from textblob import TextBlob
 from progress.bar import Bar
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import seaborn as sns
+import string
+import re
 
 # 讀取訓練資料集
 data = pd.read_csv('Spam_SMS.csv')
@@ -38,6 +39,44 @@ data.reset_index(drop=True, inplace=True)
 data_gpt.drop_duplicates(inplace=True)
 data_gpt.dropna(inplace=True)
 data_gpt.reset_index(drop=True, inplace=True)
+
+# Remove punctuation from both data and data_gpt
+data['Message'] = data['Message'].apply(lambda x: x.translate(str.maketrans('', '', string.punctuation)))
+data_gpt['Message'] = data_gpt['Message'].apply(lambda x: x.translate(str.maketrans('', '', string.punctuation)))
+
+replace_patterns = [
+    (r"can\'t", "cannot"),
+    (r"won't", "will not"),
+    (r"i'm", "i am"),
+    (r"isn't", "is not"),
+    (r"(\w+)'ll", "\g<1> will"),
+    (r"(\w+)n't", "\g<1> not"),
+    (r"(\w+)'ve", "\g<1> have"),
+    (r"(\w+)'s", "\g<1> is"),
+    (r"(\w+)'re", "\g<1> are"),
+    (r"(\w+)'d", "\g<1> would")
+]
+
+def replace_abbreviations(text, patterns):
+    for pattern, repl in patterns:
+        text = re.sub(pattern, repl, text)
+    return text
+
+def replace_repeats(text):
+    repeat_regexp = re.compile(r'(\w*)(\w)\2(\w*)')
+    repl = r'\1\2\3'
+    if text in stopwords.words('english'):
+        return text
+    repl_text = repeat_regexp.sub(repl, text)
+    if repl_text != text:
+        return replace_repeats(repl_text)
+    else:
+        return text
+
+data['Message'] = data['Message'].apply(lambda x: replace_abbreviations(x, replace_patterns))
+data_gpt['Message'] = data_gpt['Message'].apply(lambda x: replace_abbreviations(x, replace_patterns))
+data['Message'] = data['Message'].apply(lambda x: replace_repeats(x))
+data_gpt['Message'] = data_gpt['Message'].apply(lambda x: replace_repeats(x))
 
 #stopwords.word刪除
 tokens = [word_tokenize(i) for i in data['Message']]
@@ -128,6 +167,7 @@ model_SVC = SVC(class_weight='balanced')
 model_RF = RandomForestClassifier(class_weight='balanced')
 
 from sklearn.model_selection import StratifiedKFold
+
 
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -414,18 +454,18 @@ y_pred_gpt_RF = model_RF.predict(X_gpt)
 y_pred_gpt_DT = model_DT.predict(X_gpt)
 y_pred_gpt_XGB = model_XGB.predict(X_gpt)
 
-print(f"Acc. MNB (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%")
-print(f"Acc. LR (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_LR)*100:.2f}%")
-print(f"Acc. SVC (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%")
-print(f"Acc. RF (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_RF)*100:.2f}%")
-print(f"Acc. DT (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_DT)*100:.2f}%")
-print(f"Acc. XGB (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%")
+print(f"MNB (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%")
+print(f"LR (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_LR)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_LR)*100:.2f}%")
+print(f"SVC (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%")
+print(f"RF (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_RF)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_RF)*100:.2f}%")
+print(f"DT (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_DT)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_DT)*100:.2f}%")
+print(f"XGB (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%")
 
 while True:
     msg = input("Enter testing message (enter nothing to quit): ").lower()
     if not msg:
         break
-    msg = vec.transform([msg])
+    msg = vectorizer.transform([msg])
     pred = [model_MNB.predict(msg), model_LR.predict(msg), model_SVC.predict(msg), model_RF.predict(msg), model_DT.predict(msg), model_XGB.predict(msg)]
     model_names = ["NB", "LR", "SVC", "RF", "DT", "XGB"]
     pred_str = ""
@@ -441,7 +481,7 @@ while True:
     if spam_probability > 50:
         keywords_list = []
         for model in [model_MNB, model_LR, model_SVC, model_RF, model_DT, model_XGB]:
-            keywords_list.extend(extract_spam_keywords(msg, vec, model))
+            keywords_list.extend(extract_spam_keywords(msg, vectorizer, model))
         
         # Tally the percentages
         keyword_dict = {}
