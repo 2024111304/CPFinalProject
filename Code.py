@@ -263,7 +263,7 @@ with Bar('Processing [with SMOTE]...', max = 5) as bar:
 conf_matrix_smote = np.array(conf_matrix_smote)
 print("Fold accuracy [SMOTE]:\n", pd.DataFrame(skf_results_smote, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df_smote = pd.DataFrame(np.max(np.array(skf_results_smote), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
-print("Best accuracy, precision, recall, and F1-score for each model [SMOTE]:\n", best_results_df_smote)
+print("Best accuracy, precision, recall, and F1-score for each model [SMOTE] (%):\n", best_results_df_smote)
 conf_matrix_smote = np.array(conf_matrix_smote)
 
 best_acc_instance = [np.argmax(np.array(skf_results_smote)[:,0,0]), np.argmax(np.array(skf_results_smote)[:,1,0]), \
@@ -281,7 +281,7 @@ titles = ["Multinomial Naive Bayes", "Logistic Regression", "Support Vector Mach
 confusion_matrices = [conf_matrix_smote[best_acc_instance[0], 0], conf_matrix_smote[best_acc_instance[1], 1], conf_matrix_smote[best_acc_instance[2], 2], conf_matrix_smote[best_acc_instance[3], 3], conf_matrix_smote[best_acc_instance[4], 4], conf_matrix_smote[best_acc_instance[5], 5]]
 
 for ax, cm, title in zip(axes, confusion_matrices, titles):
-    sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Blues', cbar=False, square=True)
+    sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Oranges', cbar=False, square=True)
     ax.set_title(title)
     ax.set_xlabel('Predicted')
     ax.set_ylabel('Actual')
@@ -291,7 +291,7 @@ plt.show()
     
 #print("Fold accuracy [SMOTE]:\n", pd.DataFrame(skf_results_smote, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df_smote = pd.DataFrame(np.max(np.array(skf_results_smote), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
-print("Best accuracy, precision, recall, and F1-score for each model [SMOTE]:\n", best_results_df_smote)
+print("Best accuracy, precision, recall, and F1-score for each model [SMOTE] (%):\n", best_results_df_smote)
 
 skf_results_rus = []
 conf_matrix_rus = []
@@ -343,7 +343,7 @@ with Bar('Processing [with RandomUnderSampler]...', max = 5) as bar:
 conf_matrix_rus = np.array(conf_matrix_rus)
 print("Fold accuracy [RUS]:\n", pd.DataFrame(skf_results_rus, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df_rus = pd.DataFrame(np.max(np.array(skf_results_rus), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
-print("Best accuracy, precision, recall, and F1-score for each model [RUS]:\n", best_results_df_rus)
+print("Best accuracy, precision, recall, and F1-score for each model [RUS] (%):\n", best_results_df_rus)
 conf_matrix_rus = np.array(conf_matrix_rus)
 
 best_acc_instance = [np.argmax(np.array(skf_results_rus)[:,0,0]), np.argmax(np.array(skf_results_rus)[:,1,0]), \
@@ -361,11 +361,42 @@ titles = ["Multinomial Naive Bayes", "Logistic Regression", "Support Vector Mach
 confusion_matrices = [conf_matrix_rus[best_acc_instance[0], 0], conf_matrix_rus[best_acc_instance[1], 1], conf_matrix_rus[best_acc_instance[2], 2], conf_matrix_rus[best_acc_instance[3], 3], conf_matrix_rus[best_acc_instance[4], 4], conf_matrix_rus[best_acc_instance[5], 5]]
 
 for ax, cm, title in zip(axes, confusion_matrices, titles):
-    sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Blues', cbar=False, square=True)
+    sns.heatmap(cm, annot=True, fmt='d', ax=ax, cmap='Greens', cbar=False, square=True)
     ax.set_title(title)
     ax.set_xlabel('Predicted')
     ax.set_ylabel('Actual')
 plt.subplots_adjust(wspace=0.5, hspace=0.5)
+plt.show()
+
+# Plotting the multi-bar chart for best accuracy, precision, recall, F1-score for each model
+
+metrics = ["Accuracy", "Precision", "Recall", "F1-Score"]
+models = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]
+
+fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+axes = axes.flatten()
+
+for i, metric in enumerate(metrics):
+    ax = axes[i]
+    index = np.arange(len(models))
+    bar_width = 0.2
+
+    no_processing = best_results_df[metric].values
+    smote = best_results_df_smote[metric].values
+    rus = best_results_df_rus[metric].values
+
+    ax.bar(index, no_processing, bar_width, label='No Processing')
+    ax.bar(index + bar_width, smote, bar_width, label='SMOTE')
+    ax.bar(index + 2 * bar_width, rus, bar_width, label='RUS')
+
+    ax.set_xlabel('Models')
+    ax.set_ylabel(metric)
+    ax.set_title(f'Best {metric} for Each Model')
+    ax.set_xticks(index + bar_width)
+    ax.set_xticklabels(models)
+    ax.legend()
+
+plt.tight_layout()
 plt.show()
 
 '''for i in range(len(y_test_fold)):
@@ -384,9 +415,6 @@ def extract_spam_keywords(msg_vector, vectorizer, model):
                      if value > 0 and model.feature_log_prob_[1][i] > model.feature_log_prob_[0][i]]
     return spam_keywords
 
-fig, axes = plt.subplots(2, 3, figsize=(15, 15))
-axes = axes.flatten()
-
 y_pred_gpt_MNB = model_MNB.predict(X_gpt)
 y_pred_gpt_LR = model_LR.predict(X_gpt)
 y_pred_gpt_SVC = model_SVC.predict(X_gpt)
@@ -394,12 +422,12 @@ y_pred_gpt_RF = model_RF.predict(X_gpt)
 y_pred_gpt_DT = model_DT.predict(X_gpt)
 y_pred_gpt_XGB = model_XGB.predict(X_gpt)
 
-print("Acc. MNB (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_MNB))
-print("Acc. LR (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_LR))
-print("Acc. SVC (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_SVC))
-print("Acc. RF (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_RF))
-print("Acc. DT (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_DT))
-print("Acc. XGB (GPT dataset): ", accuracy_score(y_gpt, y_pred_gpt_XGB))
+print(f"Acc. MNB (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%")
+print(f"Acc. LR (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_LR)*100:.2f}%")
+print(f"Acc. SVC (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%")
+print(f"Acc. RF (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_RF)*100:.2f}%")
+print(f"Acc. DT (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_DT)*100:.2f}%")
+print(f"Acc. XGB (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%")
 
 while True:
     msg = input("Enter testing message (enter nothing to quit): ")
