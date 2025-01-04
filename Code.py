@@ -69,19 +69,17 @@ data_gpt['Message'] = data_gpt['Message'].astype(str).str.lower()
 data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
 data_gpt['Class'] = data_gpt['Class'].map({'ham': 0, 'spam': 1})
 
-# 初始化 CountVectorizer 並擬合數據
-vec = CountVectorizer()
-X = vec.fit_transform(data['Message'])
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(data['Message'])
 y = data['Class'].values
 
-X_gpt = vec.transform(data_gpt['Message'])
+X_gpt = vectorizer.transform(data_gpt['Message'])
 y_gpt = data_gpt['Class'].values
 
 #########################畫出每個詞彙的TF-IDF值########################
 documents = data['Message'].values
 
 # 初始化 TfidfVectorizer 並擬合數據
-vectorizer = TfidfVectorizer()
 tfidf_matrix = vectorizer.fit_transform(documents)
 
 # 獲取 IDF 值
@@ -122,18 +120,12 @@ plt.show()
 
 # Define all models and vectorizer
 
-vec = CountVectorizer()
-
 model_DT = DecisionTreeClassifier(class_weight='balanced')
 model_XGB = XGBClassifier()
 model_MNB = MultinomialNB()
 model_LR = LogisticRegression(class_weight='balanced')
 model_SVC = SVC(class_weight='balanced')
 model_RF = RandomForestClassifier(class_weight='balanced')
-
-# Fit the vectorizer and transform the data
-X = vec.fit_transform(data['Message'])
-y = data['Class'].values
 
 from sklearn.model_selection import StratifiedKFold
 
@@ -430,7 +422,7 @@ print(f"Acc. DT (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_DT)*100:.2f}%")
 print(f"Acc. XGB (GPT dataset): {accuracy_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%")
 
 while True:
-    msg = input("Enter testing message (enter nothing to quit): ")
+    msg = input("Enter testing message (enter nothing to quit): ").lower()
     if not msg:
         break
     msg = vec.transform([msg])
