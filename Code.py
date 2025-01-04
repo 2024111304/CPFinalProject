@@ -29,7 +29,7 @@ import re
 data = pd.read_csv('Spam_SMS.csv')
 
 # 讀取測試資料集
-data_gpt = pd.read_csv('Spam_SMS_ChatGPT.csv')
+data_gpt = pd.read_csv('Spam_SMS_ChatGPT_v2.csv')
 
 # Drop duplicates and missing values, then describe the data
 data.drop_duplicates(inplace=True)
@@ -156,7 +156,6 @@ plt.tight_layout()
 plt.show()
 #########################畫出每個詞彙的TF-IDF值########################
 
-
 # Define all models and vectorizer
 
 model_DT = DecisionTreeClassifier(class_weight='balanced')
@@ -167,7 +166,6 @@ model_SVC = SVC(class_weight='balanced')
 model_RF = RandomForestClassifier(class_weight='balanced')
 
 from sklearn.model_selection import StratifiedKFold
-
 
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -216,7 +214,7 @@ with Bar('Processing [None]...', max = 5) as bar:
         
         bar.next()
         
-print("Fold accuracy [No other preprocessing]:\n", pd.DataFrame(skf_results_normal, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
+#print("Fold accuracy [No other preprocessing]:\n", pd.DataFrame(skf_results_normal, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df = pd.DataFrame(np.max(np.array(skf_results_normal), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [No other preprocessing]:\n", best_results_df)
 conf_matrix_normal = np.array(conf_matrix_normal)
@@ -225,9 +223,9 @@ best_acc_instance = [np.argmax(np.array(skf_results_normal)[:,0,0]), np.argmax(n
                     np.argmax(np.array(skf_results_normal)[:,2,0]), np.argmax(np.array(skf_results_normal)[:,3,0]), \
                     np.argmax(np.array(skf_results_normal)[:,4,0]), np.argmax(np.array(skf_results_normal)[:,5,0])] # Index of instance with best accuracy for each model
 
-print("Conf. Matrix of instance with best accuracy [No other preprocessing]:\nMNB:\n", conf_matrix_normal[best_acc_instance[0], 0], "\nLR:\n", conf_matrix_normal[best_acc_instance[1], 1], \
+'''print("Conf. Matrix of instance with best accuracy [No other preprocessing]:\nMNB:\n", conf_matrix_normal[best_acc_instance[0], 0], "\nLR:\n", conf_matrix_normal[best_acc_instance[1], 1], \
         "\nSVC:\n", conf_matrix_normal[best_acc_instance[2], 2], "\nRF:\n", conf_matrix_normal[best_acc_instance[3], 3], "\nDT:\n", conf_matrix_normal[best_acc_instance[4], 4], \
-        "\nXGB:\n", conf_matrix_normal[best_acc_instance[5], 5])
+        "\nXGB:\n", conf_matrix_normal[best_acc_instance[5], 5])'''
 
 fig, axes = plt.subplots(2, 3, figsize=(15, 15))
 axes = axes.flatten()
@@ -249,7 +247,7 @@ conf_matrix_smote = []
 with Bar('Processing [with SMOTE]...', max = 5) as bar:
     for train_index, test_index in skf.split(X, y):
         
-        smote = SMOTE()
+        smote = SMOTE(sampling_strategy=0.7, random_state=42)
         accuracy = [0,0,0,0,0,0]
         conf_matrix = []
         
@@ -293,7 +291,7 @@ with Bar('Processing [with SMOTE]...', max = 5) as bar:
         
         bar.next()
 conf_matrix_smote = np.array(conf_matrix_smote)
-print("Fold accuracy [SMOTE]:\n", pd.DataFrame(skf_results_smote, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
+#print("Fold accuracy [SMOTE]:\n", pd.DataFrame(skf_results_smote, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df_smote = pd.DataFrame(np.max(np.array(skf_results_smote), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [SMOTE] (%):\n", best_results_df_smote)
 conf_matrix_smote = np.array(conf_matrix_smote)
@@ -301,9 +299,9 @@ conf_matrix_smote = np.array(conf_matrix_smote)
 best_acc_instance = [np.argmax(np.array(skf_results_smote)[:,0,0]), np.argmax(np.array(skf_results_smote)[:,1,0]), \
                     np.argmax(np.array(skf_results_smote)[:,2,0]), np.argmax(np.array(skf_results_smote)[:,3,0]), \
                     np.argmax(np.array(skf_results_smote)[:,4,0]), np.argmax(np.array(skf_results_smote)[:,5,0])] # Index of instance with best accuracy for each model 
-print("Conf. Matrix of instance with best accuracy [SMOTE]:\nMNB:\n", conf_matrix_smote[best_acc_instance[0], 0], "\nLR:\n", conf_matrix_smote[best_acc_instance[1], 1], \
+'''print("Conf. Matrix of instance with best accuracy [SMOTE]:\nMNB:\n", conf_matrix_smote[best_acc_instance[0], 0], "\nLR:\n", conf_matrix_smote[best_acc_instance[1], 1], \
         "\nSVC:\n", conf_matrix_smote[best_acc_instance[2], 2], "\nRF:\n", conf_matrix_smote[best_acc_instance[3], 3], "\nDT:\n", conf_matrix_smote[best_acc_instance[4], 4], \
-        "\nXGB:\n", conf_matrix_smote[best_acc_instance[5], 5])
+        "\nXGB:\n", conf_matrix_smote[best_acc_instance[5], 5])'''
 
 fig, axes = plt.subplots(2, 3, figsize=(15, 15))
 axes = axes.flatten()
@@ -320,17 +318,12 @@ for ax, cm, title in zip(axes, confusion_matrices, titles):
 plt.subplots_adjust(wspace=0.5, hspace=0.5)
 plt.show()
 
-    
-#print("Fold accuracy [SMOTE]:\n", pd.DataFrame(skf_results_smote, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
-best_results_df_smote = pd.DataFrame(np.max(np.array(skf_results_smote), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
-print("Best accuracy, precision, recall, and F1-score for each model [SMOTE] (%):\n", best_results_df_smote)
-
 skf_results_rus = []
 conf_matrix_rus = []
 with Bar('Processing [with RandomUnderSampler]...', max = 5) as bar:
     for train_index, test_index in skf.split(X, y):
         
-        rus = RandomUnderSampler()
+        rus = RandomUnderSampler(sampling_strategy=0.7, random_state=42)
         accuracy = [0,0,0,0,0,0]
         conf_matrix = []
         
@@ -373,7 +366,7 @@ with Bar('Processing [with RandomUnderSampler]...', max = 5) as bar:
         
         bar.next()
 conf_matrix_rus = np.array(conf_matrix_rus)
-print("Fold accuracy [RUS]:\n", pd.DataFrame(skf_results_rus, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
+#print("Fold accuracy [RUS]:\n", pd.DataFrame(skf_results_rus, columns = ["MNB", "LR", "SVC", "RF", "DT", "XGB"]))
 best_results_df_rus = pd.DataFrame(np.max(np.array(skf_results_rus), axis=0), columns=["Accuracy", "Precision", "Recall", "F1-Score"], index=["MNB", "LR", "SVC", "RF", "DT", "XGB"])
 print("Best accuracy, precision, recall, and F1-score for each model [RUS] (%):\n", best_results_df_rus)
 conf_matrix_rus = np.array(conf_matrix_rus)
@@ -381,9 +374,9 @@ conf_matrix_rus = np.array(conf_matrix_rus)
 best_acc_instance = [np.argmax(np.array(skf_results_rus)[:,0,0]), np.argmax(np.array(skf_results_rus)[:,1,0]), \
                     np.argmax(np.array(skf_results_rus)[:,2,0]), np.argmax(np.array(skf_results_rus)[:,3,0]), \
                     np.argmax(np.array(skf_results_rus)[:,4,0]), np.argmax(np.array(skf_results_rus)[:,5,0])] # Index of instance with best accuracy for each model
-print("Conf. Matrix of instance with best accuracy [RUS]:\nMNB:\n", conf_matrix_rus[best_acc_instance[0], 0], "\nLR:\n", conf_matrix_rus[best_acc_instance[1], 1], \
+'''print("Conf. Matrix of instance with best accuracy [RUS]:\nMNB:\n", conf_matrix_rus[best_acc_instance[0], 0], "\nLR:\n", conf_matrix_rus[best_acc_instance[1], 1], \
         "\nSVC:\n", conf_matrix_rus[best_acc_instance[2], 2], "\nRF:\n", conf_matrix_rus[best_acc_instance[3], 3], "\nDT:\n", conf_matrix_rus[best_acc_instance[4], 4], \
-        "\nXGB:\n", conf_matrix_rus[best_acc_instance[5], 5])
+        "\nXGB:\n", conf_matrix_rus[best_acc_instance[5], 5])'''
 
 fig, axes = plt.subplots(2, 3, figsize=(15, 15))
 axes = axes.flatten()
@@ -454,12 +447,12 @@ y_pred_gpt_RF = model_RF.predict(X_gpt)
 y_pred_gpt_DT = model_DT.predict(X_gpt)
 y_pred_gpt_XGB = model_XGB.predict(X_gpt)
 
-print(f"MNB (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%")
-print(f"LR (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_LR)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_LR)*100:.2f}%")
-print(f"SVC (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%")
-print(f"RF (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_RF)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_RF)*100:.2f}%")
-print(f"DT (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_DT)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_DT)*100:.2f}%")
-print(f"XGB (GPT): Acc. {accuracy_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%, Prec. {precision_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%")
+print(f"MNB (GPT): ACC. {accuracy_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%, PRC. {precision_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%, RCL. {recall_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%, F1. {f1_score(y_gpt, y_pred_gpt_MNB)*100:.2f}%")
+print(f"LR  (GPT): ACC. {accuracy_score(y_gpt, y_pred_gpt_LR)*100:.2f}%, PRC. {precision_score(y_gpt, y_pred_gpt_LR)*100:.2f}%, RCL. {recall_score(y_gpt, y_pred_gpt_LR)*100:.2f}%, F1. {f1_score(y_gpt, y_pred_gpt_LR)*100:.2f}%")
+print(f"SVC (GPT): ACC. {accuracy_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%, PRC. {precision_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%, RCL. {recall_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%, F1. {f1_score(y_gpt, y_pred_gpt_SVC)*100:.2f}%")
+print(f"RF  (GPT): ACC. {accuracy_score(y_gpt, y_pred_gpt_RF)*100:.2f}%, PRC. {precision_score(y_gpt, y_pred_gpt_RF)*100:.2f}%, RCL. {recall_score(y_gpt, y_pred_gpt_RF)*100:.2f}%, F1. {f1_score(y_gpt, y_pred_gpt_RF)*100:.2f}%")
+print(f"DT  (GPT): ACC. {accuracy_score(y_gpt, y_pred_gpt_DT)*100:.2f}%, PRC. {precision_score(y_gpt, y_pred_gpt_DT)*100:.2f}%, RCL. {recall_score(y_gpt, y_pred_gpt_DT)*100:.2f}%, F1. {f1_score(y_gpt, y_pred_gpt_DT)*100:.2f}%")
+print(f"XGB (GPT): ACC. {accuracy_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%, PRC. {precision_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%, RCL. {recall_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%, F1. {f1_score(y_gpt, y_pred_gpt_XGB)*100:.2f}%")
 
 while True:
     msg = input("Enter testing message (enter nothing to quit): ").lower()
