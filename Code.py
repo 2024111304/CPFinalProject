@@ -108,7 +108,7 @@ data_gpt['Message'] = data_gpt['Message'].astype(str).str.lower()
 data['Class'] = data['Class'].map({'ham': 0, 'spam': 1})
 data_gpt['Class'] = data_gpt['Class'].map({'ham': 0, 'spam': 1})
 
-vectorizer = TfidfVectorizer()
+vectorizer = CountVectorizer()
 X = vectorizer.fit_transform(data['Message'])
 y = data['Class'].values
 
@@ -416,10 +416,11 @@ for i, metric in enumerate(metrics):
 
     ax.set_xlabel('Models')
     ax.set_ylabel(metric)
+    ax.set_ylim(0, 100)
     ax.set_title(f'Best {metric} for Each Model')
     ax.set_xticks(index + bar_width)
     ax.set_xticklabels(models)
-    ax.legend()
+    #ax.legend()
 
 plt.tight_layout()
 plt.show()
@@ -472,9 +473,7 @@ while True:
     print(f"Flagged by: {pred_str}")
 
     if spam_probability > 50:
-        keywords_list = []
-        for model in [model_MNB, model_LR, model_SVC, model_RF, model_DT, model_XGB]:
-            keywords_list.extend(extract_spam_keywords(msg, vectorizer, model))
+        keywords_list = extract_spam_keywords(msg, vectorizer, model_MNB)
         
         # Tally the percentages
         keyword_dict = {}
