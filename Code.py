@@ -40,6 +40,9 @@ data_gpt.drop_duplicates(inplace=True)
 data_gpt.dropna(inplace=True)
 data_gpt.reset_index(drop=True, inplace=True)
 
+#correcting the apelling
+data['Message'] = data['Message'].apply(lambda x: str(TextBlob(x).correct()))
+data_gpt['Message'] = data_gpt['Message'].apply(lambda x: str(TextBlob(x).correct()))
 # Remove punctuation from both data and data_gpt
 data['Message'] = data['Message'].apply(lambda x: x.translate(str.maketrans('', '', string.punctuation)))
 data_gpt['Message'] = data_gpt['Message'].apply(lambda x: x.translate(str.maketrans('', '', string.punctuation)))
